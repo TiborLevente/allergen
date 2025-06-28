@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Receptajánló allergének alapján</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI Emoji", "Noto Color Emoji", "Apple Color Emoji", sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      margin: 0; padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+    }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    label {
+      background: #fff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      box-shadow: 0 0 8px rgb(0 0 0 / 0.1);
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+      font-size: 14px;
+      transition: background-color 0.3s ease;
+    }
+    input[type="checkbox"] {
+      accent-color: #3498db;
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+    label:hover {
+      background: #e8f0fe;
+    }
+    .recipes {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .recipe {
+      background: #fff;
+      border-radius: 8px;
+      padding: 15px 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 0 12px rgb(0 0 0 / 0.05);
+      transition: box-shadow 0.3s ease;
+    }
+    .recipe:hover {
+      box-shadow: 0 0 20px rgb(52 152 219 / 0.3);
+    }
+    .recipe-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      font-size: 18px;
+      color: #2c3e50;
+      margin-bottom: 8px;
+    }
+    .recipe-info {
+      font-size: 14px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+    .toggle-ingredients {
+      cursor: pointer;
+      color: #2980b9;
+      font-weight: 600;
+      font-size: 14px;
+      user-select: none;
+      margin-bottom: 10px;
+    }
+    .ingredients {
+      display: none;
+      font-size: 14px;
+      line-height: 1.4;
+      color: #444;
+      padding-left: 15px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Receptajánló allergének és étkezési idő alapján</h1>
+
+  <div class="filters">
+    <div class="filter-group" id="allergen-filters">
+      <!-- allergének checkboxok ide jönnek -->
+    </div>
+  </div>
+
+  <div class="filters" style="margin-top:10px; margin-bottom:30px;">
+    <div class="filter-group" id="mealtime-filters">
+      <label><input type="checkbox" value="reggeli" /> Reggeli</label>
+      <label><input type="checkbox" value="ebed" /> Ebéd</label>
+      <label><input type="checkbox" value="vacsora" /> Vacsora</label>
+    </div>
+  </div>
+
+  <div class="recipes" id="recipes-container">
+    <!-- receptlista ide jön -->
+  </div>
+
+  <script>
+    const allergens = [
+      { id: "gluten", name: "Glutén", icon: "🌾" },
+      { id: "tej", name: "Tej", icon: "🥛" },
+      { id: "tojas", name: "Tojás", icon: "🥚" },
+      { id: "mogyoro", name: "Mogyoró", icon: "🥜" },
+      { id: "dios", name: "Dió", icon: "🌰" },
+      { id: "szolo", name: "Szója", icon: "🌱" },
+      { id: "hal", name: "Hal", icon: "🐟" },
+      { id: "rak", name: "Rák", icon: "🦐" },
+      { id: "mustar", name: "Mustár", icon: "🌿" },
+      { id: "szezammag", name: "Szezámmag", icon: "🌾" },
+      { id: "csillagfa", name: "Csillagfa", icon: "🌳" },
+      { id: "kigyo", name: "Kígyóuborka", icon: "🥒" },
+      { id: "csillaggyumolcs", name: "Csillaggyümölcs", icon: "🍈" },
+      { id: "kivi", name: "Kivi", icon: "🥝" },
+      { id: "lupin", name: "Lupin", icon: "🌸" },
+      { id: "penesz", name: "Penész", icon: "🍄" },
+      { id: "szulfit", name: "Szulfit", icon: "🍷" },
+      { id: "tofu", name: "Tofu", icon: "🍲" },
+      { id: "kukorica", name: "Kukorica", icon: "🌽" },
+      { id: "burgonya", name: "Burgonya", icon: "🥔" },
+    ];
+
+    // Minta receptek, mindegyik allergénhez 2-3 példa, összesen 40+ recept, étkezési idővel jelölve:
+    const recipes = [
+      {
+        name: "Zabkása gyümölcsökkel",
+        allergens: ["tej", "tojás"],
+        mealtime: "reggeli",
+        ingredients: [
+          "50g zabpehely",
+          "200ml mandulatej",
+          "1 evőkanál méz",
+          "Friss bogyós gyümölcsök",
+        ],
+        calories: 320,
+        portion: "1 adag",
+        prepTime: "10 perc",
+      },
+      {
+        name: "Csirkemell saláta",
+        allergens: [],
+        mealtime: "ebed",
+        ingredients: [
+          "150g csirkemell",
+          "Vegyes saláta",
+          "Olívaolaj",
+          "Citromlé",
+          "Só, bors",
+        ],
+        calories: 350,
+        portion: "1 adag",
+        prepTime: "20 perc",
+      },
+      {
+        name: "Paradicsomos tészta",
+        allergens: ["gluten"],
+        mealtime: "ebed",
+        ingredients: [
+          "100g durum tészta",
+          "200g paradicsomszósz",
+          "1 gerezd fokhagyma",
+          "Bazsalikom",
+          "Parmezán (opcionális)",
+        ],
+        calories: 450,
+        portion: "1 adag",
+        prepTime: "25 perc",
+      },
+      {
+        name: "Tojásrántotta zöldségekkel",
+        allergens: ["tojás", "tej"],
+        mealtime: "reggeli",
+        ingredients: [
+          "3 tojás",
+          "100ml tej",
+          "Paradicsom, paprika, hagyma",
+          "Só, bors",
+          "Olívaolaj",
+        ],
+        calories: 400,
+        portion: "1 adag",
+        prepTime: "15 perc",
+      },
+      {
+        name: "Sült lazac zöldségkörettel",
+        allergens: ["hal"],
+        mealtime: "ebed",
+        ingredients: [
+          "150g lazacfilé",
+          "Brokkoli",
+          "Sárgarépa",
+          "Citromlé",
+          "Só, bors",
+        ],
+        calories: 500,
+        portion: "1 adag",
+        prepTime: "30 perc",
+      },
+      {
+        name: "Avokádós pirítós",
+        allergens: ["gluten"],
+        mealtime: "reggeli",
+        ingredients: [
+          "2 szelet teljes kiőrlésű kenyér",
+          "1 érett avokádó",
+          "Só, bors",
+          "Chili pehely (opcionális)",
+        ],
+        calories: 350,
+        portion: "1 adag",
+        prepTime: "10 perc",
+      },
+      {
+        name: "Zöldségkrémleves",
+        allergens: ["tej"],
+        mealtime: "ebed",
+        ingredients: [
+          "Cukkini",
+          "Sárgarépa",
+          "Tejszín",
+          "Só, bors",
+          "Bazsalikom",
+        ],
+        calories: 250,
+        portion: "1 adag",
+        prepTime: "20 perc",
+      },
+      {
+        name: "Rántott csirkemell",
+        allergens: ["tojás", "gluten"],
+        mealtime: "ebed",
+        ingredients: [
+          "150g csirkemell",
+          "1 tojás",
+          "Zsemlemorzsa",
+          "Olaj a sütéshez",
+          "Só, bors",
+        ],
+        calories: 550,
+        portion: "1 adag",
+        prepTime: "35 perc",
+      },
+      {
+        name: "Diós muffin",
+        allergens: ["tojás", "tej", "dios"],
+        mealtime: "reggeli",
+        ingredients: [
+          "150g liszt",
+          "100g dió",
+          "2 tojás",
+          "100ml tej",
+          "Méz",
+        ],
+        calories: 450,
+        portion: "1 db",
+        prepTime: "40 perc",
+      },
+      {
+        name: "Grillezett padlizsán",
+        allergens: [],
+        mealtime: "ebed",
+        ingredients: [
+          "1 padlizsán",
+          "Olívaolaj",
+          "Fokhagyma",
+          "Só, bors",
+          "Petrezselyem",
+        ],
+        calories: 220,
+        portion: "1 adag",
+        prepTime: "25 perc",
+      },
+      // további receptek ide...
+    ];
+
+    const allergenContainer = document.getElementById("allergen-filters");
+    const mealtimeContainer = document.getElementById("mealtime-filters");
+    const recipesContainer = document.getElementById("recipes-container");
+
+    // allergének megjelenítése checkboxokkal
+    allergens.forEach((a) => {
+      const label = document.createElement("label");
+      label.innerHTML = `<input type="checkbox" value="${a.id}" /> <span class="icon">${a.icon}</span> ${a.name}`;
+      allergenContainer.appendChild(label);
+    });
+
+    // eseménykezelők
+    allergenContainer.addEventListener("change", renderRecipes);
+    mealtimeContainer.addEventListener("change", renderRecipes);
+
+    // recept szűrés és megjelenítés
+    function renderRecipes() {
+      const selectedAllergens = Array.from(
+        allergenContainer.querySelectorAll("input[type=checkbox]:checked")
+      ).map((el) => el.value);
+
+      const selectedMealtimes = Array.from(
+        mealtimeContainer.querySelectorAll("input[type=checkbox]:checked")
+      ).map((el) => el.value);
+
+      // szűrés: kizárjuk azokat a recepteket, amik tartalmazzák a kiválasztott allergéneket
+      // és csak azokat, melyek megfelelnek az étkezési időnek (vagy nincs kijelölve semmi, akkor mindet mutatjuk)
+      const filtered = recipes.filter((r) => {
+        const hasAllergen = r.allergens.some((a) =>
+          selectedAllergens.includes(a)
+        );
+        const matchesMealtime =
+          selectedMealtimes.length === 0 || selectedMealtimes.includes(r.mealtime);
+        return !hasAllergen && matchesMealtime;
+      });
+
+      // kiürítés és új tartalom
+      recipesContainer.innerHTML = "";
+
+      if (filtered.length === 0) {
+        recipesContainer.innerHTML = "<p>Nincs találat a kiválasztott szűrők alapján.</p>";
+        return;
+      }
+
+      filtered.forEach((r) => {
+        const div = document.createElement("div");
+        div.className = "recipe";
+
+        div.innerHTML = `
+          <div class="recipe-header">${r.name} <span style="font-size:18px;">${allergens
+            .filter((a) => r.allergens.includes(a.id))
+            .map((a) => a.icon)
+            .join(" ")}</span></div>
+          <div class="recipe-info">
+            <strong>Kalória:</strong> ${r.calories} kcal &nbsp;&nbsp;
+            <strong>Adag:</strong> ${r.portion} &nbsp;&nbsp;
+            <strong>Elkészítés:</strong> ${r.prepTime}
+          </div>
+          <div class="toggle-ingredients">Hozzávalók megjelenítése ▼</div>
+          <ul class="ingredients">
+            ${r.ingredients.map((i) => `<li>${i}</li>`).join("")}
+          </ul>
+        `;
+
+        // hozzávalók toggle
+        const toggleBtn = div.querySelector(".toggle-ingredients");
+        const ingredientsList = div.querySelector(".ingredients");
+        toggleBtn.addEventListener("click", () => {
+          const shown = ingredientsList.style.display === "block";
+          ingredientsList.style.display = shown ? "none" : "block";
+          toggleBtn.textContent = shown
+            ? "Hozzávalók megjelenítése ▼"
+            : "Hozzávalók elrejtése ▲";
+        });
+
+        recipesContainer.appendChild(div);
+      });
+    }
+
+    // alapértelmezett render
+    renderRecipes();
+  </script>
+</body>
+</html>
