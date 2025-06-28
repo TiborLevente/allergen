@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receptajánló</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      background: #f2f2f2;
+    }
+    .card {
+      background: white;
+      padding: 16px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .details {
+      display: none;
+      margin-top: 10px;
+    }
+    .toggle-btn {
+      color: #007BFF;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    label {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Receptajánló</h1>
+
+  <h3>Allergiák (válaszd ki):</h3>
+  <div id="allergy-list"></div>
+
+  <h3>Nem szeretem (szóközzel vagy vesszővel elválasztva):</h3>
+  <input type="text" id="not-liked" style="width: 100%; padding: 8px;">
+
+  <button onclick="generateRecipes()" style="margin-top: 16px; padding: 10px 20px;">Receptajánlás</button>
+
+  <hr>
+
+  <div id="recipe-container"></div>
+
+  <script>
+    const allergenList = [
+      "glutén", "tej", "tojás", "diófélék", "földimogyoró",
+      "hal", "rákféle", "szója", "zeller", "mustár"
+    ];
+
+    const recipes = [
+      {
+        name: "Lecsó",
+        ingredients: ["paprika", "paradicsom", "vöröshagyma", "kolbász"],
+        allergens: [""] ,
+        kcal: 350
+      },
+      {
+        name: "Rakott krumpli",
+        ingredients: ["burgonya", "tojás", "tejföl", "kolbász"],
+        allergens: ["tojás", "tej"],
+        kcal: 500
+      },
+      {
+        name: "Paprikás krumpli",
+        ingredients: ["burgonya", "vöröshagyma", "paprika", "kolbász"],
+        allergens: [],
+        kcal: 420
+      },
+      {
+        name: "Zöldségleves",
+        ingredients: ["répa", "zeller", "karalábé", "petrezselyem"],
+        allergens: ["zeller"],
+        kcal: 180
+      },
+    ];
+
+    const allergyListDiv = document.getElementById("allergy-list");
+    allergenList.forEach(item => {
+      const label = document.createElement("label");
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.value = item;
+      label.appendChild(checkbox);
+      label.append(" " + item);
+      allergyListDiv.appendChild(label);
+    });
+
+    function generateRecipes() {
+      const selectedAllergies = Array.from(document.querySelectorAll('#allergy-list input:checked')).map(cb => cb.value);
+      const notLiked = document.getElementById("not-liked").value.toLowerCase().split(/[ ,]+/).filter(Boolean);
+
+      const container = document.getElementById("recipe-container");
+      container.innerHTML = "";
+
+      const filtered = recipes.filter(recipe => {
+        return !recipe.allergens.some(a => selectedAllergies.includes(a)) &&
+               !recipe.ingredients.some(ing => notLiked.includes(ing.toLowerCase()));
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = "<p>Nincs találat a megadott szűrési feltételek alapján.</p>";
+        return;
+      }
+
+      filtered.forEach(recipe => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `<strong>${recipe.name}</strong> <br>
+          <span class="toggle-btn" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block'">Részletek ?</span>
+          <div class="details">
+            <p><strong>Hozzávalók:</strong> ${recipe.ingredients.join(", ")}</p>
+            <p><strong>Kalória:</strong> ${recipe.kcal} kcal</p>
+            <p><strong>Allergének:</strong> ${recipe.allergens.length ? recipe.allergens.join(", ") : "nincs"}</p>
+          </div>`;
+        container.appendChild(card);
+      });
+    }
+  </script>
+</body>
+</html>
