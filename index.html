@@ -1,124 +1,202 @@
 <!DOCTYPE html>
 <html lang="hu">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Receptajánló</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Receptajánló allergia alapján</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <style>
-    body {
-      font-family: sans-serif;
-      padding: 20px;
-      background: #f2f2f2;
+    * {
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
     }
-    .card {
-      background: white;
-      padding: 16px;
-      margin-bottom: 12px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    body {
+      background-color: #f5f9f6;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    h1 {
+      text-align: center;
+      color: #2e7d32;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    }
+    label {
+      display: block;
+      margin-top: 12px;
+      font-weight: 600;
+    }
+    input[type="text"],
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+    .allergen-checkboxes label {
+      display: flex;
+      align-items: center;
+      margin-top: 5px;
+    }
+    .allergen-checkboxes input[type="checkbox"] {
+      margin-right: 10px;
+    }
+    button {
+      background-color: #43a047;
+      color: white;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #388e3c;
+    }
+    .recipe {
+      border: 1px solid #c8e6c9;
+      background: #e8f5e9;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
     }
     .details {
       display: none;
-      margin-top: 10px;
+      padding-top: 10px;
     }
-    .toggle-btn {
-      color: #007BFF;
+    .toggle {
       cursor: pointer;
+      color: #2e7d32;
       text-decoration: underline;
-    }
-    label {
-      margin-right: 10px;
     }
   </style>
 </head>
 <body>
-  <h1>Receptajánló</h1>
+  <h1>Receptajánló – Allergiák szerint</h1>
+  <div class="container">
+    <label>Válaszd ki az allergiáidat:</label>
+    <div class="allergen-checkboxes" id="allergen-list">
+      <label><input type="checkbox" value="glutén"> Glutén</label>
+      <label><input type="checkbox" value="tej"> Tej</label>
+      <label><input type="checkbox" value="tojás"> Tojás</label>
+      <label><input type="checkbox" value="szója"> Szója</label>
+      <label><input type="checkbox" value="mogyoró"> Földimogyoró</label>
+      <label><input type="checkbox" value="diófélék"> Diófélék</label>
+      <label><input type="checkbox" value="hal"> Hal</label>
+      <label><input type="checkbox" value="rák"> Rákfélék</label>
+      <label><input type="checkbox" value="zeller"> Zeller</label>
+      <label><input type="checkbox" value="mustár"> Mustár</label>
+    </div>
 
-  <h3>Allergiák (válaszd ki):</h3>
-  <div id="allergy-list"></div>
+    <label for="dislikes">Nem szeretem (pl. hagyma, paprika):</label>
+    <input type="text" id="dislikes" placeholder="Írd be az alapanyagokat vesszővel elválasztva...">
 
-  <h3>Nem szeretem (szóközzel vagy vesszővel elválasztva):</h3>
-  <input type="text" id="not-liked" style="width: 100%; padding: 8px;">
+    <button onclick="searchRecipes()">Receptek keresése</button>
 
-  <button onclick="generateRecipes()" style="margin-top: 16px; padding: 10px 20px;">Receptajánlás</button>
-
-  <hr>
-
-  <div id="recipe-container"></div>
+    <div id="results"></div>
+  </div>
 
   <script>
-    const allergenList = [
-      "glutén", "tej", "tojás", "diófélék", "földimogyoró",
-      "hal", "rákféle", "szója", "zeller", "mustár"
-    ];
-
     const recipes = [
-      {
-        name: "Lecsó",
-        ingredients: ["paprika", "paradicsom", "vöröshagyma", "kolbász"],
-        allergens: [""] ,
-        kcal: 350
-      },
-      {
-        name: "Rakott krumpli",
-        ingredients: ["burgonya", "tojás", "tejföl", "kolbász"],
-        allergens: ["tojás", "tej"],
-        kcal: 500
-      },
-      {
-        name: "Paprikás krumpli",
-        ingredients: ["burgonya", "vöröshagyma", "paprika", "kolbász"],
-        allergens: [],
-        kcal: 420
-      },
-      {
-        name: "Zöldségleves",
-        ingredients: ["répa", "zeller", "karalábé", "petrezselyem"],
-        allergens: ["zeller"],
-        kcal: 180
-      },
+      { name: "Paprikás krumpli", ingredients: ["burgonya", "paprika", "hagyma", "kolbász"], calories: 450, allergens: ["mustár"], portion: "1 tányér (400 g)", time: "45 perc" },
+      { name: "Grillezett csirkemell salátával", ingredients: ["csirkemell", "saláta", "olívaolaj", "paradicsom"], calories: 320, allergens: [], portion: "1 adag (300 g)", time: "25 perc" },
+      { name: "Tejes zabkása gyümölcsökkel", ingredients: ["zab", "tej", "alma", "banán"], calories: 380, allergens: ["tej", "glutén"], portion: "1 tál (350 g)", time: "15 perc" },
+      { name: "Rakott kelkáposzta", ingredients: ["kelkáposzta", "darálthús", "rizs", "tejföl"], calories: 550, allergens: ["tej"], portion: "1 adag (400 g)", time: "60 perc" },
+      { name: "Főtt tojás majonézzel", ingredients: ["tojás", "majonéz", "mustár"], calories: 280, allergens: ["tojás", "mustár"], portion: "2 tojás", time: "15 perc" },
+      { name: "Csirkehúsleves zellerrel", ingredients: ["csirke", "zeller", "sárgarépa", "fokhagyma"], calories: 200, allergens: ["zeller"], portion: "1 tányér (300 ml)", time: "90 perc" },
+      { name: "Diós rétes", ingredients: ["dió", "liszt", "tojás", "cukor"], calories: 420, allergens: ["diófélék", "tojás", "glutén"], portion: "1 szelet (120 g)", time: "50 perc" },
+      { name: "Halászlé", ingredients: ["ponty", "hal", "paprika", "vöröshagyma"], calories: 350, allergens: ["hal"], portion: "1 tányér (350 ml)", time: "120 perc" },
+      { name: "Rák saláta avokádóval", ingredients: ["rák", "avokádó", "saláta", "citrom"], calories: 280, allergens: ["rák"], portion: "1 adag (250 g)", time: "20 perc" },
+      { name: "Szójaszószos pirított zöldség", ingredients: ["brokkoli", "sárgarépa", "szójaszósz", "fokhagyma"], calories: 230, allergens: ["szója"], portion: "1 adag (300 g)", time: "25 perc" },
+      { name: "Mogyorós csirke wokban", ingredients: ["csirke", "mogyoró", "paprika", "szójaszósz"], calories: 450, allergens: ["mogyoró", "szója"], portion: "1 adag (350 g)", time: "30 perc" },
+      { name: "Diós csirkemell saláta", ingredients: ["csirkemell", "dió", "saláta", "citrom"], calories: 370, allergens: ["diófélék"], portion: "1 adag (300 g)", time: "20 perc" },
+      { name: "Tojásos nokedli", ingredients: ["tojás", "liszt", "tej"], calories: 520, allergens: ["tojás", "glutén", "tej"], portion: "1 adag (350 g)", time: "40 perc" },
+      { name: "Hal sült zöldségekkel", ingredients: ["harcsa", "cukkini", "paprika", "citrom"], calories: 400, allergens: ["hal"], portion: "1 adag (350 g)", time: "35 perc" },
+      { name: "Mustáros sült csirke", ingredients: ["csirke", "mustár", "fokhagyma", "olívaolaj"], calories: 430, allergens: ["mustár"], portion: "1 adag (300 g)", time: "50 perc" },
+      { name: "Szójaszószos sült tészta", ingredients: ["rizstészta", "zöldség", "szójaszósz", "tojás"], calories: 480, allergens: ["tojás", "szója", "glutén"], portion: "1 adag (350 g)", time: "30 perc" },
+      { name: "Mogyorós keksz", ingredients: ["mogyoró", "liszt", "tojás", "cukor"], calories: 520, allergens: ["mogyoró", "tojás", "glutén"], portion: "1 adag (100 g)", time: "25 perc" },
+      { name: "Diós mézes sütemény", ingredients: ["dió", "méz", "liszt", "tojás"], calories: 480, allergens: ["diófélék", "tojás", "glutén"], portion: "1 szelet (90 g)", time: "40 perc" },
+      { name: "Zelleres krémleves", ingredients: ["zeller", "krémtej", "hagyma", "fokhagyma"], calories: 230, allergens: ["zeller", "tej"], portion: "1 tányér (300 ml)", time: "35 perc" },
+      { name: "Mustáros tojás saláta", ingredients: ["tojás", "mustár", "saláta", "majonéz"], calories: 300, allergens: ["tojás", "mustár"], portion: "1 adag (250 g)", time: "20 perc" },
+      { name: "Gluténmentes almás pite", ingredients: ["gluténmentes liszt", "alma", "tojás", "cukor"], calories: 350, allergens: ["tojás"], portion: "1 szelet (120 g)", time: "50 perc" },
+      { name: "Tejfölös kapros tökfőzelék", ingredients: ["tök", "tejföl", "liszt", "kapor"], calories: 350, allergens: ["tej", "glutén"], portion: "1 adag (300 g)", time: "40 perc" },
+      { name: "Rákos tészta", ingredients: ["rák", "spagetti", "fokhagyma", "paradicsom"], calories: 450, allergens: ["rák", "glutén"], portion: "1 adag (350 g)", time: "30 perc" },
+      { name: "Csirkés zeller saláta", ingredients: ["csirke", "zeller", "majonéz", "saláta"], calories: 320, allergens: ["zeller", "tojás"], portion: "1 adag (300 g)", time: "20 perc" },
+      { name: "Mustáros sült paprika", ingredients: ["paprika", "mustár", "olívaolaj", "fokhagyma"], calories: 280, allergens: ["mustár"], portion: "1 adag (250 g)", time: "35 perc" },
+      { name: "Gluténmentes palacsinta", ingredients: ["gluténmentes liszt", "tojás", "tej", "cukor"], calories: 400, allergens: ["tojás", "tej"], portion: "3 db palacsinta", time: "25 perc" },
+      { name: "Halrántott", ingredients: ["hal", "tojás", "liszt", "zsír"], calories: 470, allergens: ["hal", "tojás", "glutén"], portion: "1 adag (300 g)", time: "40 perc" },
+      { name: "Tejes mákos guba", ingredients: ["kalács", "tej", "tojás", "mák"], calories: 480, allergens: ["tej", "tojás", "glutén"], portion: "1 adag (350 g)", time: "45 perc" },
+      { name: "Diós töltött káposzta", ingredients: ["káposzta", "dió", "darálthús", "rizs"], calories: 520, allergens: ["diófélék"], portion: "1 adag (400 g)", time: "90 perc" },
+      { name: "Szójaszószos sült csirke", ingredients: ["csirke", "szójaszósz", "fokhagyma", "gyömbér"], calories: 450, allergens: ["szója"], portion: "1 adag (350 g)", time: "35 perc" },
+      { name: "Mogyorós csoki szelet", ingredients: ["mogyoró", "csokoládé", "cukor"], calories: 520, allergens: ["mogyoró"], portion: "1 szelet (90 g)", time: "20 perc" },
+      { name: "Zelleres csirkeragu", ingredients: ["csirke", "zeller", "tejföl", "fokhagyma"], calories: 400, allergens: ["zeller", "tej"], portion: "1 adag (350 g)", time: "40 perc" },
+      { name: "Mustáros lazac", ingredients: ["lazac", "mustár", "citrom", "olívaolaj"], calories: 430, allergens: ["hal", "mustár"], portion: "1 adag (300 g)", time: "30 perc" },
+      { name: "Gluténmentes banánkenyér", ingredients: ["gluténmentes liszt", "banán", "tojás", "cukor"], calories: 410, allergens: ["tojás"], portion: "1 szelet (100 g)", time: "50 perc" },
+      { name: "Tojásos avokádókrém", ingredients: ["tojás", "avokádó", "citrom", "fokhagyma"], calories: 300, allergens: ["tojás"], portion: "1 adag (150 g)", time: "15 perc" },
+      { name: "Halas paprika saláta", ingredients: ["hal", "paprika", "hagyma", "citrom"], calories: 280, allergens: ["hal"], portion: "1 adag (250 g)", time: "20 perc" },
+      { name: "Rákos tésztasaláta", ingredients: ["rák", "tészta", "majonéz", "uborka"], calories: 450, allergens: ["rák", "tojás", "glutén"], portion: "1 adag (300 g)", time: "25 perc" }
     ];
 
-    const allergyListDiv = document.getElementById("allergy-list");
-    allergenList.forEach(item => {
-      const label = document.createElement("label");
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.value = item;
-      label.appendChild(checkbox);
-      label.append(" " + item);
-      allergyListDiv.appendChild(label);
-    });
+    function searchRecipes() {
+      const allergensChecked = Array.from(document.querySelectorAll('#allergen-list input[type=checkbox]:checked')).map(cb => cb.value);
+      const dislikesInput = document.getElementById('dislikes').value.toLowerCase();
+      const dislikes = dislikesInput ? dislikesInput.split(',').map(s => s.trim()) : [];
 
-    function generateRecipes() {
-      const selectedAllergies = Array.from(document.querySelectorAll('#allergy-list input:checked')).map(cb => cb.value);
-      const notLiked = document.getElementById("not-liked").value.toLowerCase().split(/[ ,]+/).filter(Boolean);
-
-      const container = document.getElementById("recipe-container");
-      container.innerHTML = "";
+      const resultsDiv = document.getElementById('results');
+      resultsDiv.innerHTML = '';
 
       const filtered = recipes.filter(recipe => {
-        return !recipe.allergens.some(a => selectedAllergies.includes(a)) &&
-               !recipe.ingredients.some(ing => notLiked.includes(ing.toLowerCase()));
+        // allergén szűrés
+        for (let allergen of allergensChecked) {
+          if (recipe.allergens.includes(allergen)) return false;
+        }
+        // nem kedvelt alapanyag szűrés
+        for (let dislike of dislikes) {
+          if (recipe.ingredients.some(ing => ing.toLowerCase().includes(dislike))) return false;
+        }
+        return true;
       });
 
       if (filtered.length === 0) {
-        container.innerHTML = "<p>Nincs találat a megadott szűrési feltételek alapján.</p>";
+        resultsDiv.innerHTML = '<p>Nincs találat a megadott feltételekkel.</p>';
         return;
       }
 
-      filtered.forEach(recipe => {
-        const card = document.createElement("div");
-        card.className = "card";
-        card.innerHTML = `<strong>${recipe.name}</strong> <br>
-          <span class="toggle-btn" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block'">Részletek ?</span>
+      for (let rec of filtered) {
+        const recDiv = document.createElement('div');
+        recDiv.classList.add('recipe');
+        recDiv.innerHTML = `
+          <h3>${rec.name}</h3>
+          <p><strong>Adag:</strong> ${rec.portion}</p>
+          <p><strong>Kalória:</strong> ${rec.calories} kcal</p>
+          <p><strong>Elkészítési idő:</strong> ${rec.time}</p>
+          <p><span class="toggle">Hozzávalók és allergének megtekintése</span></p>
           <div class="details">
-            <p><strong>Hozzávalók:</strong> ${recipe.ingredients.join(", ")}</p>
-            <p><strong>Kalória:</strong> ${recipe.kcal} kcal</p>
-            <p><strong>Allergének:</strong> ${recipe.allergens.length ? recipe.allergens.join(", ") : "nincs"}</p>
-          </div>`;
-        container.appendChild(card);
-      });
+            <p><strong>Hozzávalók:</strong> ${rec.ingredients.join(', ')}</p>
+            <p><strong>Allergének:</strong> ${rec.allergens.length > 0 ? rec.allergens.join(', ') : 'Nincs'}</p>
+          </div>
+        `;
+        resultsDiv.appendChild(recDiv);
+
+        const toggleBtn = recDiv.querySelector('.toggle');
+        const details = recDiv.querySelector('.details');
+        toggleBtn.addEventListener('click', () => {
+          if (details.style.display === 'block') {
+            details.style.display = 'none';
+            toggleBtn.textContent = 'Hozzávalók és allergének megtekintése';
+          } else {
+            details.style.display = 'block';
+            toggleBtn.textContent = 'Bezárás';
+          }
+        });
+      }
     }
   </script>
 </body>
